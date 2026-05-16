@@ -1,0 +1,6 @@
+@OpsCrew.Continuity.Api_HostAddress = http://localhost:5254
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/health
+Accept: application/json
+
+###

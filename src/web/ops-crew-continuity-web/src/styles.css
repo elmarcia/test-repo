@@ -1,0 +1,10 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}

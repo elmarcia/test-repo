@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>OpsCrew.Continuity.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpsCrew.Continuity.Core\OpsCrew.Continuity.Core.csproj" />
+    <ProjectReference Include="..\OpsCrew.Continuity.Infrastructure\OpsCrew.Continuity.Infrastructure.csproj" />
+    <ProjectReference Include="..\OpsCrew.Continuity.Contracts\OpsCrew.Continuity.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

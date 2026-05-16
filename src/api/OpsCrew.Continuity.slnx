@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="OpsCrew.Continuity.Api/OpsCrew.Continuity.Api.csproj" />
+  <Project Path="OpsCrew.Continuity.Contracts/OpsCrew.Continuity.Contracts.csproj" />
+  <Project Path="OpsCrew.Continuity.Core/OpsCrew.Continuity.Core.csproj" />
+  <Project Path="OpsCrew.Continuity.Infrastructure/OpsCrew.Continuity.Infrastructure.csproj" />
+</Solution>

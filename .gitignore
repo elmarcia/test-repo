@@ -1,0 +1,31 @@
+# Build outputs
+bin/
+obj/
+dist/
+out/
+
+# .NET
+*.user
+*.suo
+*.rsuser
+TestResults/
+
+# Node / Angular
+node_modules/
+.angular/
+.npm/
+coverage/
+
+# IDEs
+.vs/
+.vscode/*
+!.vscode/extensions.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Docker / local data
+*.log
+postgres-data/

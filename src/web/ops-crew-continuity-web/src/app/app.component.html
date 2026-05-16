@@ -1,0 +1,43 @@
+<main class="page">
+  <section class="hero" aria-labelledby="page-title">
+    <p class="eyebrow">Continuity PoC</p>
+    <h1 id="page-title">OPS&amp;CREW Continuity</h1>
+    <p class="subtitle">Portable continuity mockup</p>
+  </section>
+
+  <section class="status-grid" aria-label="Platform status">
+    <article class="status-card">
+      <span class="status-label">Web Application</span>
+      <strong>Running</strong>
+    </article>
+
+    <article class="status-card">
+      <span class="status-label">Core API</span>
+      <strong>{{ apiDisplayUrl }}</strong>
+    </article>
+
+    <article class="status-card">
+      <span class="status-label">PostgreSQL</span>
+      <strong>Containerized continuity database</strong>
+    </article>
+  </section>
+
+  <section class="health-panel" aria-label="Core API health check">
+    <div>
+      <h2>Core API Health</h2>
+      <p>Calls the Core API health endpoint and displays the returned JSON.</p>
+    </div>
+
+    <button type="button" (click)="checkHealth()" [disabled]="isLoadingHealth">
+      {{ isLoadingHealth ? 'Checking...' : 'Check Health' }}
+    </button>
+
+    @if (healthJson) {
+      <pre>{{ healthJson }}</pre>
+    }
+
+    @if (healthError) {
+      <p class="error">{{ healthError }}</p>
+    }
+  </section>
+</main>
