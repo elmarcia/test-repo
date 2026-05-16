@@ -4,3 +4,75 @@ GET {{OpsCrew.Continuity.Api_HostAddress}}/api/health
 Accept: application/json
 
 ###
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/flights
+Accept: application/json
+
+###
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/flights/disrupted
+Accept: application/json
+
+###
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/crew-members
+Accept: application/json
+
+###
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/standby-assignments
+Accept: application/json
+
+###
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/pairings
+Accept: application/json
+
+###
+
+GET {{OpsCrew.Continuity.Api_HostAddress}}/api/journal
+Accept: application/json
+
+###
+
+POST {{OpsCrew.Continuity.Api_HostAddress}}/api/flights/FLT-1001/delay
+Content-Type: application/json
+
+{
+  "minutes": 20,
+  "reason": "Demo delay workflow"
+}
+
+###
+
+POST {{OpsCrew.Continuity.Api_HostAddress}}/api/flights/FLT-1001/cancel
+Content-Type: application/json
+
+{
+  "reason": "Demo cancellation workflow"
+}
+
+###
+
+POST {{OpsCrew.Continuity.Api_HostAddress}}/api/standby-assignments/STBY-001/assign
+Content-Type: application/json
+
+{
+  "flightId": "FLT-1002",
+  "notes": "Demo standby assignment workflow"
+}
+
+###
+
+POST {{OpsCrew.Continuity.Api_HostAddress}}/api/journal
+Content-Type: application/json
+
+{
+  "severity": "INFO",
+  "category": "Demo",
+  "flightId": "FLT-1002",
+  "crewMemberId": null,
+  "message": "Manual demo journal entry"
+}
+
+###

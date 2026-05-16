@@ -1,43 +1,223 @@
-<main class="page">
-  <section class="hero" aria-labelledby="page-title">
-    <p class="eyebrow">Continuity PoC</p>
-    <h1 id="page-title">OPS&amp;CREW Continuity</h1>
-    <p class="subtitle">Portable continuity mockup</p>
-  </section>
-
-  <section class="status-grid" aria-label="Platform status">
-    <article class="status-card">
-      <span class="status-label">Web Application</span>
-      <strong>Running</strong>
-    </article>
-
-    <article class="status-card">
-      <span class="status-label">Core API</span>
-      <strong>{{ apiDisplayUrl }}</strong>
-    </article>
-
-    <article class="status-card">
-      <span class="status-label">PostgreSQL</span>
-      <strong>Containerized continuity database</strong>
-    </article>
-  </section>
-
-  <section class="health-panel" aria-label="Core API health check">
+<main class="dashboard">
+  <header class="topbar">
     <div>
-      <h2>Core API Health</h2>
-      <p>Calls the Core API health endpoint and displays the returned JSON.</p>
+      <p class="eyebrow">Continuity PoC</p>
+      <h1>OPS&amp;CREW Continuity</h1>
+      <p class="subtitle">Portable continuity mockup</p>
     </div>
 
-    <button type="button" (click)="checkHealth()" [disabled]="isLoadingHealth">
-      {{ isLoadingHealth ? 'Checking...' : 'Check Health' }}
+    <button type="button" (click)="loadDashboard()" [disabled]="isLoading">
+      {{ isLoading ? 'Refreshing' : 'Refresh' }}
     </button>
+  </header>
 
-    @if (healthJson) {
-      <pre>{{ healthJson }}</pre>
-    }
+  @if (errorMessage) {
+    <section class="banner error-banner" role="alert">
+      {{ errorMessage }}
+    </section>
+  }
 
-    @if (healthError) {
-      <p class="error">{{ healthError }}</p>
-    }
+  @if (successMessage) {
+    <section class="banner success-banner" role="status">
+      {{ successMessage }}
+    </section>
+  }
+
+  @if (isLoading) {
+    <section class="banner">
+      Loading operational continuity data...
+    </section>
+  }
+
+  <section class="kpi-grid" aria-label="Operational summary">
+    <article class="kpi-card">
+      <span>Active Flights</span>
+      <strong>{{ activeFlights.length }}</strong>
+    </article>
+
+    <article class="kpi-card alert">
+      <span>Disrupted Flights</span>
+      <strong>{{ disruptedFlights.length }}</strong>
+    </article>
+
+    <article class="kpi-card">
+      <span>Standby Crew</span>
+      <strong>{{ standbyAssignments.length }}</strong>
+    </article>
+
+    <article class="kpi-card warning">
+      <span>Legality Review</span>
+      <strong>{{ legalityIssues.length }}</strong>
+    </article>
+  </section>
+
+  <section class="content-grid">
+    <article class="panel disrupted-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">Recovery Watch</span>
+          <h2>Disrupted Flights</h2>
+        </div>
+        <span class="count-pill">{{ disruptedFlights.length }}</span>
+      </div>
+
+      @if (disruptedFlights.length) {
+        <div class="flight-stack">
+          @for (flight of disruptedFlights; track flight.flightId) {
+            <div class="disruption-card">
+              <div>
+                <strong>{{ flight.flightNumber }}</strong>
+                <span>{{ flight.originIata }} -> {{ flight.destinationIata }}</span>
+              </div>
+              <span
+                class="status-chip"
+                [class.delayed]="flight.status === 'DELAYED'"
+                [class.cancelled]="flight.status === 'CANCELLED'"
+                [class.disrupted]="flight.status === 'DISRUPTED'"
+              >
+                {{ flight.status }}
+              </span>
+              <p>{{ flight.disruptionReason || 'No disruption reason provided' }}</p>
+              <div class="action-row">
+                <button type="button" class="small-action" (click)="delayFlight(flight)" [disabled]="isActionInProgress || isLoading">
+                  Delay flight
+                </button>
+                <button type="button" class="small-action danger" (click)="cancelFlight(flight)" [disabled]="isActionInProgress || isLoading">
+                  Cancel flight
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (!isLoading) {
+        <p class="empty">No disrupted flights in the demo feed.</p>
+      }
+    </article>
+
+    <article class="panel active-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">Network Board</span>
+          <h2>Active Flights</h2>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Flight</th>
+              <th>Route</th>
+              <th>Departure</th>
+              <th>Arrival</th>
+              <th>Aircraft</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (flight of activeFlights; track flight.flightId) {
+              <tr>
+                <td>{{ flight.flightNumber }}</td>
+                <td>{{ flight.originIata }} -> {{ flight.destinationIata }}</td>
+                <td>{{ flight.scheduledDeparture | date:'HH:mm' }}</td>
+                <td>{{ flight.scheduledArrival | date:'HH:mm' }}</td>
+                <td>{{ flight.aircraftRegistration || 'TBD' }}</td>
+                <td>
+                  <div class="table-actions">
+                    <button type="button" class="small-action" (click)="delayFlight(flight)" [disabled]="isActionInProgress || isLoading">
+                      Delay
+                    </button>
+                    <button type="button" class="small-action danger" (click)="cancelFlight(flight)" [disabled]="isActionInProgress || isLoading">
+                      Cancel
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">No active flights in the demo feed.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="panel standby-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">Crew Reserve</span>
+          <h2>Standby Crew</h2>
+        </div>
+      </div>
+
+      <div class="standby-list">
+        @for (assignment of standbyAssignments; track assignment.standbyAssignmentId) {
+          <div class="standby-item">
+            <div>
+              <strong>{{ assignment.fullName }}</strong>
+              <span>{{ assignment.baseIata }} - {{ assignment.standbyStart | date:'HH:mm' }}-{{ assignment.standbyEnd | date:'HH:mm' }}</span>
+            </div>
+            <div class="standby-actions">
+              <span class="readiness">{{ assignment.readinessStatus }}</span>
+              <button type="button" class="small-action" (click)="assignStandby(assignment)" [disabled]="isActionInProgress || isLoading">
+                Assign standby
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty">No standby crew assignments in the demo feed.</p>
+        }
+      </div>
+    </article>
+
+    <article class="panel pairings-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">Crew Pairings</span>
+          <h2>Pairing Status</h2>
+        </div>
+      </div>
+
+      <div class="pairing-list">
+        @for (pairing of pairings; track pairing.pairingId) {
+          <div class="pairing-item">
+            <div>
+              <strong>{{ pairing.pairingCode }}</strong>
+              <span>{{ pairing.flightIds.length }} flights - {{ pairing.crewMemberIds.length }} crew</span>
+            </div>
+            <span class="legality" [class.issue]="pairing.legalityStatus === 'ISSUE'" [class.warning]="pairing.legalityStatus === 'WARNING'">
+              {{ pairing.legalityStatus }}
+            </span>
+          </div>
+        } @empty {
+          <p class="empty">No pairings in the demo feed.</p>
+        }
+      </div>
+    </article>
+
+    <article class="panel journal-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">Operations Log</span>
+          <h2>Operational Journal</h2>
+        </div>
+      </div>
+
+      <div class="timeline">
+        @for (entry of journal; track entry.journalEntryId) {
+          <div class="timeline-item" [class.critical]="entry.severity === 'CRITICAL'" [class.warning]="entry.severity === 'WARNING'">
+            <time>{{ entry.occurredAt | date:'HH:mm' }}</time>
+            <div>
+              <strong>{{ entry.category }}</strong>
+              <p>{{ entry.message }}</p>
+              <span>{{ entry.severity }} - {{ entry.flightId || entry.crewMemberId || 'Network' }}</span>
+            </div>
+          </div>
+        } @empty {
+          <p class="empty">No journal entries in the demo feed.</p>
+        }
+      </div>
+    </article>
   </section>
 </main>

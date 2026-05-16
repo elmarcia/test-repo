@@ -1,0 +1,8 @@
+using OpsCrew.Continuity.Contracts.Journal;
+
+namespace OpsCrew.Continuity.Core.Modules.Continuity;
+
+public interface IOperationalJournalReadRepository
+{
+    Task<IReadOnlyList<JournalEntryResponse>> GetJournalEntriesAsync(CancellationToken cancellationToken);
+}

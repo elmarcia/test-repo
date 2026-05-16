@@ -1,3 +1,4 @@
+using OpsCrew.Continuity.Core;
 using OpsCrew.Continuity.Infrastructure;
 
 namespace OpsCrew.Continuity.Api.CompositionRoot;
@@ -8,6 +9,7 @@ public static class ModuleRegistration
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        services.AddCoreServices();
         services.AddInfrastructure(configuration);
 
         return services;

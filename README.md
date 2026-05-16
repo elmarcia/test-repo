@@ -65,7 +65,11 @@ src/api/OpsCrew.Continuity.Infrastructure
     `-- Operations/
 
 src/api/OpsCrew.Continuity.Contracts
-`-- Health/
+|-- Crew/
+|-- Flights/
+|-- Health/
+|-- Journal/
+`-- Pairings/
 ```
 
 ## Frontend Layout
@@ -99,6 +103,32 @@ Endpoints:
 - Core API health: http://localhost:8080/api/health
 - PostgreSQL: localhost:5432
 
+Read-only operational API endpoints:
+
+- `GET /api/flights`
+- `GET /api/flights/disrupted`
+- `GET /api/crew-members`
+- `GET /api/standby-assignments`
+- `GET /api/pairings`
+- `GET /api/journal`
+
+Demo write workflow endpoints:
+
+- `POST /api/flights/{flightId}/delay`
+  - body: `{ "minutes": 30, "reason": "Operational continuity demo delay" }`
+  - marks the flight as delayed, updates estimated times, and adds a journal entry
+- `POST /api/flights/{flightId}/cancel`
+  - body: `{ "reason": "Operational continuity demo cancellation" }`
+  - marks the flight as cancelled and adds a journal entry
+- `POST /api/standby-assignments/{standbyAssignmentId}/assign`
+  - body: `{ "flightId": "FLT-1002", "notes": "Assigned from continuity dashboard" }`
+  - marks the standby assignment as assigned and adds a journal entry
+- `POST /api/journal`
+  - body: `{ "severity": "INFO", "category": "Demo", "flightId": null, "crewMemberId": null, "message": "Manual demo journal entry" }`
+  - adds a manual operational journal entry
+
+These write endpoints are intentionally simple PoC workflows. They do not implement airline-grade scheduling, crew legality rules, authentication, CDC, Synchronization Control, OPERVUELOS integration, or event-driven processing.
+
 Run the Core API locally:
 
 ```powershell
@@ -123,7 +153,35 @@ PostgreSQL initialization scripts live in:
 database/postgres/init
 ```
 
-The current script creates schema placeholders only. No tables or business data have been added.
+The official PostgreSQL container loads these scripts automatically from `/docker-entrypoint-initdb.d` the first time a new database volume is created. Docker Compose mounts the local folder into that container path:
+
+```yaml
+./database/postgres/init:/docker-entrypoint-initdb.d:ro
+```
+
+Scripts are executed in filename order:
+
+- `001_create_schemas.sql`: creates schema placeholders for the modular monolith
+- `002_create_operational_tables.sql`: creates simple demo operational tables in the `operations` schema
+- `003_seed_demo_data.sql`: inserts deterministic fake continuity data
+
+The demo data includes:
+
+- active, delayed, cancelled, and disrupted flights
+- crew members across assigned, available, standby, and legality review states
+- simple pairings with demo legality statuses
+- crew legality issue examples
+- standby crew assignments
+- operational journal entries for monitoring, delay, cancellation, standby, disruption, and crew legality events
+
+Reset the local PostgreSQL database and rerun all init scripts:
+
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+`docker compose down -v` removes the named PostgreSQL volume, so the next `up` starts with a fresh database and reloads every init script.
 
 ## Container Portability
 
@@ -141,11 +199,12 @@ Implemented:
 - Docker Compose
 - Dockerfiles
 - README
+- read-only Core API endpoints for demo operational data
+- simple write workflows for delay, cancellation, standby assignment, and journal entry creation
 
 Not implemented yet:
 
-- business logic
-- user screens
+- airline-grade business rules
 - real authentication provider integration
 - external system integration
-- database persistence implementation
+- airline-grade scheduling or legality complexity
