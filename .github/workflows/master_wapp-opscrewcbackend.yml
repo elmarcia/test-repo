@@ -21,7 +21,7 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: dotnet build src/OpsCrew.Continuity.sln --configuration Release
+        run: dotnet build OpsCrew.Continuity.slnx --configuration Release
 
       - name: dotnet publish
         run: dotnet publish src/api/OpsCrew.Continuity.Api/OpsCrew.Continuity.Api.csproj -c Release -o ${{ env.DOTNET_ROOT }}/myapp
