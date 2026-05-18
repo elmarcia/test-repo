@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/api/">
+    <Project Path="src/api/OpsCrew.Continuity.Api/OpsCrew.Continuity.Api.csproj" />
+    <Project Path="src/api/OpsCrew.Continuity.Contracts/OpsCrew.Continuity.Contracts.csproj" />
+    <Project Path="src/api/OpsCrew.Continuity.Core/OpsCrew.Continuity.Core.csproj" />
+    <Project Path="src/api/OpsCrew.Continuity.Infrastructure/OpsCrew.Continuity.Infrastructure.csproj" />
+  </Folder>
+</Solution>
