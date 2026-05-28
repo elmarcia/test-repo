@@ -76,3 +76,87 @@ export interface CreateJournalEntryRequest {
   crewMemberId: string | null;
   message: string;
 }
+
+export interface GendecDocumentDto {
+  flightId: string;
+  documentNumber: string;
+  generatedAtUtc: string;
+  flightInformation: {
+    flightNumber: string | null;
+    scheduledDeparture: string | null;
+    scheduledArrival: string | null;
+    estimatedDeparture: string | null;
+    estimatedArrival: string | null;
+    status: string | null;
+    disruptionReason: string | null;
+  };
+  aircraft: {
+    registration: string | null;
+  };
+  route: {
+    originIata: string | null;
+    destinationIata: string | null;
+  };
+  crew: Array<{
+    crewMemberId: string;
+    employeeNumber: string;
+    fullName: string;
+    crewRole: string;
+    status: string;
+  }>;
+  declaration: string;
+  warnings: string[];
+  rulesApplied: string[];
+  fieldVisibility: {
+    showEstimatedTimes: boolean;
+    showDisruptionReason: boolean;
+    showCrewStatus: boolean;
+    showWarnings: boolean;
+    showRulesApplied: boolean;
+  };
+  html: string;
+}
+
+export interface CrewManifestDto {
+  flightId: string;
+  documentNumber: string;
+  generatedAtUtc: string;
+  flight: {
+    flightNumber: string;
+    originIata: string;
+    destinationIata: string;
+    scheduledDeparture: string;
+    scheduledArrival: string;
+    status: string;
+    aircraftRegistration: string | null;
+  };
+  crew: Array<{
+    crewMemberId: string;
+    employeeNumber: string;
+    fullName: string;
+    baseIata: string;
+    crewRole: string;
+    status: string;
+    legalityNote: string | null;
+  }>;
+  warnings: string[];
+  rulesApplied: string[];
+  html: string;
+}
+
+export interface RecoveryActionsReportDto {
+  reportId: string;
+  generatedAtUtc: string;
+  actions: Array<{
+    disruptionType: string;
+    impactedFlights: string[];
+    assignedStandbyCrew: string[];
+    recoveryAction: string;
+    firstObservedAt: string;
+    lastUpdatedAt: string;
+    operationalNotes: string;
+  }>;
+  warnings: string[];
+  rulesApplied: string[];
+  html: string;
+}

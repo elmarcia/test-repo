@@ -1,0 +1,48 @@
+<main class="report-page">
+  <header class="report-header">
+    <div>
+      <p class="eyebrow">Reporting / Operational Reports</p>
+      <h1>Recovery Actions</h1>
+      @if (report) {
+        <p class="subtitle">{{ report.reportId }} - {{ report.generatedAtUtc | date:'MMM d, y HH:mm':'UTC' }} UTC</p>
+      } @else {
+        <p class="subtitle">Disruption recovery decisions and assigned actions</p>
+      }
+    </div>
+
+    <button type="button" (click)="print()" [disabled]="!report">Print / Export PDF</button>
+  </header>
+
+  @if (isLoading) {
+    <section class="banner">Loading Recovery Actions Report...</section>
+  }
+
+  @if (errorMessage) {
+    <section class="banner error-banner" role="alert">{{ errorMessage }}</section>
+  }
+
+  @if (report) {
+    <section class="action-list">
+      @for (action of report.actions; track action.impactedFlights.join(',')) {
+        <article>
+          <div>
+            <span class="status-chip">{{ action.disruptionType }}</span>
+            <h2>{{ action.impactedFlights.join(', ') }}</h2>
+            <p>{{ action.recoveryAction }}</p>
+          </div>
+          <dl>
+            <div><dt>Standby Crew</dt><dd>{{ action.assignedStandbyCrew.join(', ') || 'None assigned' }}</dd></div>
+            <div><dt>Observed</dt><dd>{{ action.firstObservedAt | date:'HH:mm' }} - {{ action.lastUpdatedAt | date:'HH:mm' }}</dd></div>
+            <div><dt>Notes</dt><dd>{{ action.operationalNotes }}</dd></div>
+          </dl>
+        </article>
+      } @empty {
+        <section class="empty-state">No recovery actions are present in the current demo data.</section>
+      }
+    </section>
+
+    <section class="document-preview">
+      <iframe title="Recovery Actions Report preview" [srcdoc]="report.html"></iframe>
+    </section>
+  }
+</main>

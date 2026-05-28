@@ -1,0 +1,201 @@
+<main class="timeline-page">
+  <header class="ops-header">
+    <div>
+      <p class="eyebrow">Network Control</p>
+      <h1>Flight Timeline</h1>
+      <p class="subtitle">Operational rotation board with live recovery cues and native Angular rendering.</p>
+    </div>
+
+    <button type="button" (click)="loadFlights()" [disabled]="isLoading">
+      {{ isLoading ? 'Refreshing' : 'Refresh' }}
+    </button>
+  </header>
+
+  @if (errorMessage) {
+    <section class="banner error-banner" role="alert">{{ errorMessage }}</section>
+  }
+
+  @if (successMessage) {
+    <section class="banner success-banner" role="status">{{ successMessage }}</section>
+  }
+
+  <section class="ops-summary" aria-label="Timeline operational summary">
+    <article>
+      <span>Total Flights</span>
+      <strong>{{ flights.length }}</strong>
+    </article>
+    <article class="warning">
+      <span>Delayed</span>
+      <strong>{{ delayedCount }}</strong>
+    </article>
+    <article class="alert">
+      <span>Disrupted</span>
+      <strong>{{ disruptedCount }}</strong>
+    </article>
+    <article class="cancel">
+      <span>Cancelled</span>
+      <strong>{{ cancelledCount }}</strong>
+    </article>
+  </section>
+
+  <section class="control-strip" aria-label="Timeline controls">
+    <label>
+      Aircraft / Route
+      <select [(ngModel)]="aircraftFilter" (ngModelChange)="applyFilters()">
+        <option value="ALL">All rotations</option>
+        @for (aircraft of aircraftOptions; track aircraft) {
+          <option [value]="aircraft">{{ aircraft }}</option>
+        }
+      </select>
+    </label>
+
+    <label>
+      Status
+      <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()">
+        <option value="ALL">All statuses</option>
+        <option value="ACTIVE">Active</option>
+        <option value="DELAYED">Delayed</option>
+        <option value="CANCELLED">Cancelled</option>
+        <option value="DISRUPTED">Disrupted</option>
+      </select>
+    </label>
+
+    <button type="button" class="subtle-button" (click)="clearFilters()">Clear</button>
+
+    <div class="legend" aria-label="Flight status legend">
+      <span><i class="active"></i>Active</span>
+      <span><i class="delayed"></i>Delayed</span>
+      <span><i class="cancelled"></i>Cancelled</span>
+      <span><i class="disrupted"></i>Disrupted</span>
+    </div>
+  </section>
+
+  <section class="board-shell">
+    <div class="board-scroll">
+      <div class="board" [style.--timeline-width.px]="timelineWidth">
+        <div class="corner-cell">Aircraft / Route</div>
+        <div class="time-header">
+          @for (tick of viewModel.ticks; track tick.label) {
+            <div class="tick" [style.left.%]="tick.offsetPercent">
+              <span>{{ tick.label }}</span>
+            </div>
+          }
+          <div class="now-marker header-now" [style.left.%]="viewModel.currentTimeOffsetPercent">
+            <span>OPS NOW {{ viewModel.operationalNow | date:'HH:mm' }}</span>
+          </div>
+        </div>
+
+        @if (isLoading) {
+          <div class="loading-row">Loading flight timeline...</div>
+        } @else {
+          @for (row of viewModel.rows; track row.groupKey) {
+            <div class="row-label">
+              <strong>{{ row.groupLabel }}</strong>
+              <span>{{ row.bars.length }} flight{{ row.bars.length === 1 ? '' : 's' }}</span>
+            </div>
+            <div class="lane">
+              @for (tick of viewModel.ticks; track tick.label) {
+                <span class="gridline" [style.left.%]="tick.offsetPercent"></span>
+              }
+              <span class="now-marker" [style.left.%]="viewModel.currentTimeOffsetPercent"></span>
+              @for (connector of row.connectors; track connector.leftPercent) {
+                <span
+                  class="rotation-connector"
+                  [class.tight]="connector.state === 'tight'"
+                  [class.broken]="connector.state === 'broken'"
+                  [style.left.%]="connector.leftPercent"
+                  [style.width.%]="connector.widthPercent"
+                  [title]="connector.label"
+                ></span>
+              }
+              @for (bar of row.bars; track bar.flight.flightId) {
+                <button
+                  type="button"
+                  class="flight-bar"
+                  [class.active]="bar.statusClass === 'active'"
+                  [class.delayed]="bar.statusClass === 'delayed'"
+                  [class.cancelled]="bar.statusClass === 'cancelled'"
+                  [class.disrupted]="bar.statusClass === 'disrupted'"
+                  [class.selected]="selectedFlight?.flightId === bar.flight.flightId"
+                  [style.left.%]="bar.leftPercent"
+                  [style.width.%]="bar.widthPercent"
+                  [title]="bar.flight.flightNumber + ' ' + bar.flight.originIata + '-' + bar.flight.destinationIata"
+                  (click)="selectFlight(bar.flight)"
+                >
+                  <span class="bar-main">{{ bar.flight.flightNumber }}</span>
+                  <span class="bar-route">{{ bar.flight.originIata }} -> {{ bar.flight.destinationIata }}</span>
+                  <span class="bar-status">{{ bar.flight.status }}</span>
+                  @if (bar.delayMinutes !== 0) {
+                    <span class="delay-indicator">{{ bar.delayMinutes > 0 ? '+' : '' }}{{ bar.delayMinutes }}m</span>
+                  }
+                  @if (bar.turnMinutesAfterPrevious !== null) {
+                    <span class="turn-chip" [class.tight]="bar.turnMinutesAfterPrevious < 35">
+                      turn {{ bar.turnMinutesAfterPrevious }}m
+                    </span>
+                  }
+                  <span class="bar-tooltip">
+                    <strong>{{ bar.flight.flightNumber }} {{ bar.flight.originIata }} -> {{ bar.flight.destinationIata }}</strong>
+                    <span>Aircraft {{ bar.flight.aircraftRegistration || 'TBD' }}</span>
+                    <span>Effective {{ bar.departureLabel }} - {{ bar.arrivalLabel }}</span>
+                    <span>Scheduled {{ bar.flight.scheduledDeparture | date:'HH:mm' }} - {{ bar.flight.scheduledArrival | date:'HH:mm' }}</span>
+                    <span>{{ bar.flight.disruptionReason || 'No disruption reason' }}</span>
+                  </span>
+                </button>
+              }
+            </div>
+          } @empty {
+            <div class="loading-row">No flights available for the timeline.</div>
+          }
+        }
+      </div>
+    </div>
+  </section>
+
+  <aside class="detail-panel" aria-label="Selected flight detail">
+    @if (selectedFlight) {
+      <div class="detail-heading">
+        <div>
+          <p class="eyebrow">Selected Flight</p>
+          <h2>{{ selectedFlight.flightNumber }}</h2>
+        </div>
+        <span class="status-chip" [class]="selectedFlight.status.toLowerCase()">{{ selectedFlight.status }}</span>
+      </div>
+
+      <dl>
+        <div>
+          <dt>Aircraft</dt>
+          <dd>{{ selectedFlight.aircraftRegistration || 'TBD' }}</dd>
+        </div>
+        <div>
+          <dt>Route</dt>
+          <dd>{{ selectedFlight.originIata }} -> {{ selectedFlight.destinationIata }}</dd>
+        </div>
+        <div>
+          <dt>Scheduled</dt>
+          <dd>{{ selectedFlight.scheduledDeparture | date:'MMM d, HH:mm' }} - {{ selectedFlight.scheduledArrival | date:'HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt>Estimated</dt>
+          <dd>{{ getEffectiveDeparture(selectedFlight) | date:'MMM d, HH:mm' }} - {{ getEffectiveArrival(selectedFlight) | date:'HH:mm' }}</dd>
+        </div>
+        <div>
+          <dt>Delay</dt>
+          <dd>{{ hasDelay(selectedFlight) ? getDelayMinutes(selectedFlight) + ' minutes' : 'None' }}</dd>
+        </div>
+        <div>
+          <dt>Disruption</dt>
+          <dd>{{ selectedFlight.disruptionReason || 'No disruption reason provided' }}</dd>
+        </div>
+      </dl>
+
+      <div class="detail-actions">
+        <button type="button" (click)="delayFlight(selectedFlight)" [disabled]="isActionInProgress || isLoading">Delay</button>
+        <button type="button" class="danger" (click)="cancelFlight(selectedFlight)" [disabled]="isActionInProgress || isLoading">Cancel</button>
+        <a [routerLink]="['/gendec', selectedFlight.flightId]" class="document-button">View GENDEC</a>
+        <a [routerLink]="['/crew-manifest', selectedFlight.flightId]" class="document-button">Crew Manifest</a>
+      </div>
+    } @else {
+      <p class="empty">Select a flight bar to inspect operational details.</p>
+    }
+  </aside>
+</main>

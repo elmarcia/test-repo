@@ -1,0 +1,33 @@
+<main class="document-page">
+  <header class="document-hero">
+    <div>
+      <p class="eyebrow">Documents / GENDEC</p>
+      <h1>GENDEC</h1>
+      <p>Select a flight to generate the General Declaration preview with warnings and applied rules.</p>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <section class="state-card">Loading flights for GENDEC generation...</section>
+  }
+
+  @if (errorMessage) {
+    <section class="state-card error">{{ errorMessage }}</section>
+  }
+
+  <section class="flight-list">
+    @for (flight of flights; track flight.flightId) {
+      <article>
+        <div>
+          <span class="eyebrow">{{ flight.aircraftRegistration || 'Aircraft TBD' }}</span>
+          <h2>{{ flight.flightNumber }}</h2>
+          <p>{{ flight.originIata }} -> {{ flight.destinationIata }} - {{ flight.scheduledDeparture | date:'MMM d, HH:mm' }}</p>
+        </div>
+        <span class="status-chip" [class]="flight.status.toLowerCase()">{{ flight.status }}</span>
+        <a [routerLink]="['/gendec', flight.flightId]">Preview GENDEC</a>
+      </article>
+    } @empty {
+      <section class="state-card">No flights are available for GENDEC generation.</section>
+    }
+  </section>
+</main>

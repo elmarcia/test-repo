@@ -1,0 +1,65 @@
+<main class="module-page">
+  <header class="module-hero">
+    <div>
+      <p class="eyebrow">Reporting Module</p>
+      <h1>Operational Documents</h1>
+      <p>Generate demo-ready operational documents from the current flight, crew, and pairing snapshot.</p>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <section class="state-card">Loading document candidates...</section>
+  }
+
+  @if (errorMessage) {
+    <section class="state-card error">{{ errorMessage }}</section>
+  }
+
+  <section class="document-grid">
+    <article class="module-card">
+      <div>
+        <span class="card-kicker">Operational Documents</span>
+        <h2>GENDEC</h2>
+        <p>General Declaration preview with validation warnings, applied rules, crew, aircraft, and route context.</p>
+      </div>
+      <a routerLink="/documents/gendec">Open GENDEC</a>
+    </article>
+
+    <article class="module-card">
+      <div>
+        <span class="card-kicker">Operational Documents</span>
+        <h2>Crew Manifest</h2>
+        <p>Pairing-derived crew output with role ordering, legality warnings, and configurable field visibility.</p>
+      </div>
+      <a routerLink="/documents/crew-manifest">Open Crew Manifest</a>
+    </article>
+  </section>
+
+  <section class="flight-picker">
+    <div class="section-heading">
+      <div>
+        <span class="card-kicker">Flight Context</span>
+        <h2>Recent Flights</h2>
+      </div>
+      <p>Select a flight-specific document directly from the operating day.</p>
+    </div>
+
+    <div class="flight-list">
+      @for (flight of flights.slice(0, 12); track flight.flightId) {
+        <article>
+          <div>
+            <strong>{{ flight.flightNumber }}</strong>
+            <span>{{ flight.originIata }} -> {{ flight.destinationIata }} - {{ flight.aircraftRegistration || 'TBD' }}</span>
+          </div>
+          <span class="status-chip" [class]="flight.status.toLowerCase()">{{ flight.status }}</span>
+          <div class="row-actions">
+            <a [routerLink]="['/gendec', flight.flightId]">GENDEC</a>
+            <a [routerLink]="['/crew-manifest', flight.flightId]">Manifest</a>
+          </div>
+        </article>
+      } @empty {
+        <section class="state-card">No flights are available for document generation.</section>
+      }
+    </div>
+  </section>
+</main>

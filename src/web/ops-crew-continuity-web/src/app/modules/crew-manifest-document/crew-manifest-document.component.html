@@ -1,0 +1,33 @@
+<main class="document-page">
+  <header class="document-hero">
+    <div>
+      <p class="eyebrow">Documents / Crew Manifest</p>
+      <h1>Crew Manifest</h1>
+      <p>Select a flight to generate the pairing-derived crew manifest preview.</p>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <section class="state-card">Loading flights for Crew Manifest generation...</section>
+  }
+
+  @if (errorMessage) {
+    <section class="state-card error">{{ errorMessage }}</section>
+  }
+
+  <section class="flight-list">
+    @for (flight of flights; track flight.flightId) {
+      <article>
+        <div>
+          <span class="eyebrow">{{ flight.aircraftRegistration || 'Aircraft TBD' }}</span>
+          <h2>{{ flight.flightNumber }}</h2>
+          <p>{{ flight.originIata }} -> {{ flight.destinationIata }} - {{ flight.scheduledDeparture | date:'MMM d, HH:mm' }}</p>
+        </div>
+        <span class="status-chip" [class]="flight.status.toLowerCase()">{{ flight.status }}</span>
+        <a [routerLink]="['/crew-manifest', flight.flightId]">Preview Manifest</a>
+      </article>
+    } @empty {
+      <section class="state-card">No flights are available for Crew Manifest generation.</section>
+    }
+  </section>
+</main>

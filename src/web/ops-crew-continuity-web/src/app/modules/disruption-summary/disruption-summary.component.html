@@ -1,0 +1,39 @@
+<main class="summary-page">
+  <header class="summary-hero">
+    <div>
+      <p class="eyebrow">Reports / Operations</p>
+      <h1>Disruption Summary</h1>
+      <p>Delayed, cancelled, and disrupted flights requiring operational attention.</p>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <section class="state-card">Loading disrupted flights...</section>
+  }
+
+  @if (errorMessage) {
+    <section class="state-card error">{{ errorMessage }}</section>
+  }
+
+  <section class="summary-grid">
+    @for (flight of flights; track flight.flightId) {
+      <article>
+        <div class="card-heading">
+          <div>
+            <span class="eyebrow">{{ flight.aircraftRegistration || 'Aircraft TBD' }}</span>
+            <h2>{{ flight.flightNumber }}</h2>
+          </div>
+          <span class="status-chip" [class]="flight.status.toLowerCase()">{{ flight.status }}</span>
+        </div>
+        <dl>
+          <div><dt>Route</dt><dd>{{ flight.originIata }} -> {{ flight.destinationIata }}</dd></div>
+          <div><dt>Scheduled</dt><dd>{{ flight.scheduledDeparture | date:'HH:mm' }} - {{ flight.scheduledArrival | date:'HH:mm' }}</dd></div>
+          <div><dt>Estimated</dt><dd>{{ (flight.estimatedDeparture || flight.scheduledDeparture) | date:'HH:mm' }} - {{ (flight.estimatedArrival || flight.scheduledArrival) | date:'HH:mm' }}</dd></div>
+          <div><dt>Reason</dt><dd>{{ flight.disruptionReason || 'No disruption reason provided' }}</dd></div>
+        </dl>
+      </article>
+    } @empty {
+      <section class="state-card">No disrupted flights are present in the demo feed.</section>
+    }
+  </section>
+</main>

@@ -1,0 +1,68 @@
+<main class="gendec-page">
+  <header class="preview-header">
+    <div>
+      <p class="eyebrow">Reporting / Operational Documents</p>
+      <h1>GENDEC Preview</h1>
+      @if (document) {
+        <p class="subtitle">{{ document.documentNumber }} - {{ document.generatedAtUtc | date:'MMM d, y HH:mm':'UTC' }} UTC</p>
+      } @else {
+        <p class="subtitle">General Declaration preview</p>
+      }
+    </div>
+
+    <button type="button" (click)="print()" [disabled]="!document">Print / Export PDF</button>
+  </header>
+
+  @if (isLoading) {
+    <section class="banner">Loading GENDEC preview...</section>
+  }
+
+  @if (errorMessage) {
+    <section class="banner error-banner" role="alert">{{ errorMessage }}</section>
+  }
+
+  @if (document) {
+    <section class="meta-grid" aria-label="GENDEC metadata">
+      <article>
+        <span>Flight</span>
+        <strong>{{ document.flightInformation.flightNumber }}</strong>
+      </article>
+      <article>
+        <span>Aircraft</span>
+        <strong>{{ document.aircraft.registration || 'TBD' }}</strong>
+      </article>
+      <article>
+        <span>Route</span>
+        <strong>{{ document.route.originIata }} -> {{ document.route.destinationIata }}</strong>
+      </article>
+      <article>
+        <span>Crew</span>
+        <strong>{{ document.crew.length }}</strong>
+      </article>
+    </section>
+
+    <section class="preview-layout">
+      <aside class="side-panel">
+        <h2>Generation Warnings</h2>
+        <ul>
+          @for (warning of document.warnings; track warning) {
+            <li>{{ warning }}</li>
+          } @empty {
+            <li>No generation warnings.</li>
+          }
+        </ul>
+
+        <h2>Rules Applied</h2>
+        <ul class="rules">
+          @for (rule of document.rulesApplied; track rule) {
+            <li>{{ rule }}</li>
+          }
+        </ul>
+      </aside>
+
+      <section class="document-preview" aria-label="GENDEC document preview">
+        <iframe title="GENDEC document preview" [srcdoc]="document.html"></iframe>
+      </section>
+    </section>
+  }
+</main>

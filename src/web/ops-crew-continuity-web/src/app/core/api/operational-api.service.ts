@@ -4,14 +4,17 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  CrewManifestDto,
   CrewMemberDto,
   AssignStandbyRequest,
   CancelFlightRequest,
   CreateJournalEntryRequest,
   DelayFlightRequest,
   FlightDto,
+  GendecDocumentDto,
   JournalEntryDto,
   PairingDto,
+  RecoveryActionsReportDto,
   StandbyAssignmentDto
 } from './operational-api.models';
 
@@ -60,5 +63,17 @@ export class OperationalApiService {
 
   addJournalEntry(request: CreateJournalEntryRequest): Observable<void> {
     return this.http.post<void>(`${this.apiBaseUrl}/journal`, request);
+  }
+
+  getGendec(flightId: string): Observable<GendecDocumentDto> {
+    return this.http.get<GendecDocumentDto>(`${this.apiBaseUrl}/documents/gendec/${flightId}`);
+  }
+
+  getCrewManifest(flightId: string): Observable<CrewManifestDto> {
+    return this.http.get<CrewManifestDto>(`${this.apiBaseUrl}/documents/crew-manifest/${flightId}`);
+  }
+
+  getRecoveryActionsReport(): Observable<RecoveryActionsReportDto> {
+    return this.http.get<RecoveryActionsReportDto>(`${this.apiBaseUrl}/reports/recovery-actions`);
   }
 }
