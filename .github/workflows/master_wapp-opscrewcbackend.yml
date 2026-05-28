@@ -47,6 +47,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'wapp-opscrewbackend'
-          slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FB6A40BCDBC24CFF8FB9607C9CD1D632 }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
