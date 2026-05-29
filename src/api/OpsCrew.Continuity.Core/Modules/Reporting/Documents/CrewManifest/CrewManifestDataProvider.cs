@@ -9,7 +9,8 @@ namespace OpsCrew.Continuity.Core.Modules.Reporting.Documents.CrewManifest;
 public sealed class CrewManifestDataProvider(
     IFlightReadRepository flightRepository,
     IPairingReadRepository pairingRepository,
-    ICrewMemberReadRepository crewMemberRepository)
+    ICrewMemberReadRepository crewMemberRepository,
+    IStandbyAssignmentReadRepository standbyAssignmentRepository)
 {
     public async Task<CrewManifestSourceData?> GetSourceDataAsync(
         string flightId,
@@ -34,6 +35,15 @@ public sealed class CrewManifestDataProvider(
             .SelectMany(pairing => pairing.CrewMemberIds)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var standbyAssignments = await standbyAssignmentRepository.GetStandbyAssignmentsAsync(cancellationToken);
+        var assignedStandbyCrewIds = standbyAssignments
+            .Where(assignment => string.Equals(
+                assignment.AssignedFlightId,
+                flight.FlightId,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(assignment => assignment.CrewMemberId);
+
+        crewIds.UnionWith(assignedStandbyCrewIds);
 
         var crewMembers = await crewMemberRepository.GetCrewMembersAsync(cancellationToken);
         var crew = crewMembers

@@ -30,10 +30,17 @@ public sealed class RecoveryActionsReportGenerator(
                     .OrderBy(entry => entry.OccurredAt)
                     .ToArray();
                 var assignedStandby = standbyAssignments
-                    .Where(assignment => assignment.ReadinessStatus is "ASSIGNED" or "CONTACTED" or "READY")
-                    .Where(assignment => assignment.BaseIata == flight.OriginIata || assignment.BaseIata == flight.DestinationIata)
+                    .Where(assignment =>
+                        string.Equals(assignment.AssignedFlightId, flight.FlightId, StringComparison.OrdinalIgnoreCase) ||
+                        (assignment.AssignedFlightId is null &&
+                         assignment.ReadinessStatus is "CONTACTED" or "READY" &&
+                         (assignment.BaseIata == flight.OriginIata || assignment.BaseIata == flight.DestinationIata)))
                     .Take(3)
-                    .Select(assignment => assignment.FullName)
+                    .Select(assignment =>
+                    {
+                        var status = assignment.AssignedFlightId is null ? assignment.ReadinessStatus : "ASSIGNED";
+                        return $"{assignment.FullName} ({assignment.EmployeeNumber}) - {status}";
+                    })
                     .ToArray();
 
                 return new RecoveryActionItem(
@@ -53,7 +60,7 @@ public sealed class RecoveryActionsReportGenerator(
         var rulesApplied = new[]
         {
             "Recovery report includes delayed, cancelled, and disrupted flights.",
-            "Standby crew candidates are matched by impacted origin or destination base.",
+            "Assigned standby crew is shown for the impacted flight before base-matched candidates.",
             "Journal timestamps provide first observed and last updated times when available.",
             "Recovery action labels are demo-oriented and not airline-grade decision automation."
         };

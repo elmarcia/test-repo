@@ -24,7 +24,9 @@ public static class DependencyInjection
         services.AddSingleton(sp =>
         {
             var options = sp.GetRequiredService<IOptions<PostgresOptions>>().Value;
-            return new NpgsqlDataSourceBuilder(options.ConnectionString).Build();
+            var dataSource = new NpgsqlDataSourceBuilder(options.ConnectionString).Build();
+            EnsureStandbyAssignmentTargetColumn(dataSource);
+            return dataSource;
         });
 
         services.AddScoped<IFlightReadRepository, PostgresFlightReadRepository>();
@@ -37,5 +39,19 @@ public static class DependencyInjection
         services.AddScoped<IOperationalJournalCommandRepository, PostgresOperationalJournalCommandRepository>();
 
         return services;
+    }
+
+    private static void EnsureStandbyAssignmentTargetColumn(NpgsqlDataSource dataSource)
+    {
+        const string sql = """
+            ALTER TABLE operations.standby_assignments
+            ADD COLUMN IF NOT EXISTS assigned_flight_id text REFERENCES operations.flights (flight_id);
+
+            CREATE INDEX IF NOT EXISTS ix_standby_assignments_assigned_flight
+            ON operations.standby_assignments (assigned_flight_id);
+            """;
+
+        using var command = dataSource.CreateCommand(sql);
+        command.ExecuteNonQuery();
     }
 }

@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS operations.pairings (
 CREATE TABLE IF NOT EXISTS operations.standby_assignments (
     standby_assignment_id text PRIMARY KEY,
     crew_member_id text NOT NULL REFERENCES operations.crew_members (crew_member_id),
+    assigned_flight_id text REFERENCES operations.flights (flight_id),
     base_iata char(3) NOT NULL,
     standby_start timestamptz NOT NULL,
     standby_end timestamptz NOT NULL,
@@ -63,6 +64,7 @@ CREATE INDEX IF NOT EXISTS ix_flights_status ON operations.flights (status);
 CREATE INDEX IF NOT EXISTS ix_flights_departure ON operations.flights (scheduled_departure);
 CREATE INDEX IF NOT EXISTS ix_crew_members_status ON operations.crew_members (status);
 CREATE INDEX IF NOT EXISTS ix_pairings_status ON operations.pairings (status);
+CREATE INDEX IF NOT EXISTS ix_standby_assignments_assigned_flight ON operations.standby_assignments (assigned_flight_id);
 CREATE INDEX IF NOT EXISTS ix_operational_journal_occurred_at ON operations.operational_journal (occurred_at DESC);
 
 COMMENT ON TABLE operations.flights IS 'Demo flight snapshot for the OPS&CREW Continuity PoC.';

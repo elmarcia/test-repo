@@ -63,13 +63,15 @@ INSERT INTO operations.crew_members (
     ('CREW-107', 'E1107', 'Monica Beltran', 'CLO', 'FIRST_OFFICER', 'STANDBY', NULL),
     ('CREW-108', 'E1108', 'Ivan Restrepo', 'BOG', 'CAPTAIN', 'STANDBY', NULL),
     ('CREW-109', 'E1109', 'Sara Quintero', 'BOG', 'FIRST_OFFICER', 'STANDBY', NULL),
-    ('CREW-110', 'E1110', 'Emilia Vargas', 'BOG', 'PURSER', 'STANDBY', NULL),
+    ('CREW-110', 'E1110', 'Emilia Vargas', 'BOG', 'PURSER', 'ASSIGNED', NULL),
     ('CREW-111', 'E1111', 'Hector Naranjo', 'MDE', 'CAPTAIN', 'ASSIGNED', NULL),
     ('CREW-112', 'E1112', 'Luisa Barrios', 'MDE', 'FIRST_OFFICER', 'LEGALITY_REVIEW', 'Late LET return creates minimum rest review'),
     ('CREW-113', 'E1113', 'Oscar Londoño', 'BOG', 'CAPTAIN', 'ASSIGNED', NULL),
     ('CREW-114', 'E1114', 'Diana Muñoz', 'BOG', 'FIRST_OFFICER', 'ASSIGNED', NULL),
     ('CREW-115', 'E1115', 'Veronica Ibarra', 'BOG', 'CABIN_CREW', 'AVAILABLE', NULL),
-    ('CREW-116', 'E1116', 'Cristian Mora', 'BAQ', 'CABIN_CREW', 'STANDBY', NULL)
+    ('CREW-116', 'E1116', 'Cristian Mora', 'BAQ', 'CABIN_CREW', 'STANDBY', NULL),
+    ('CREW-117', 'E1117', 'Felipe Torres', 'BOG', 'CAPTAIN', 'ASSIGNED', NULL),
+    ('CREW-118', 'E1118', 'Paula Rios', 'BOG', 'FIRST_OFFICER', 'ASSIGNED', NULL)
 ON CONFLICT (crew_member_id) DO NOTHING;
 
 INSERT INTO operations.pairings (
@@ -87,7 +89,7 @@ INSERT INTO operations.pairings (
     ('PAIR-103', 'BOG-AMZ-17', '2026-05-17', ARRAY['CREW-111', 'CREW-112', 'CREW-115'], ARRAY['FLT-2009', 'FLT-2010', 'FLT-2011', 'FLT-2012'], 'DISRUPTED', 'ISSUE', 'LET delay creates projected minimum rest issue'),
     ('PAIR-104', 'BOG-INT-17A', '2026-05-17', ARRAY['CREW-113', 'CREW-114', 'CREW-110'], ARRAY['FLT-2013', 'FLT-2014', 'FLT-2015', 'FLT-2016'], 'CANCELLED', 'ISSUE', 'Aircraft cancellation disrupts outbound international sequence'),
     ('PAIR-105', 'BOG-INT-17B', '2026-05-17', ARRAY['CREW-001', 'CREW-002', 'CREW-003'], ARRAY['FLT-2017', 'FLT-2018', 'FLT-2019', 'FLT-2020'], 'DISRUPTED', 'WARNING', 'MIA delay creates crew connection risk'),
-    ('PAIR-106', 'BOG-REG-17', '2026-05-17', ARRAY['CREW-019', 'CREW-020', 'CREW-116'], ARRAY['FLT-2021', 'FLT-2022', 'FLT-2023', 'FLT-2024'], 'ACTIVE', 'OK', NULL),
+    ('PAIR-106', 'BOG-REG-17', '2026-05-17', ARRAY['CREW-117', 'CREW-118', 'CREW-116'], ARRAY['FLT-2021', 'FLT-2022', 'FLT-2023', 'FLT-2024'], 'ACTIVE', 'OK', NULL),
     ('PAIR-107', 'CLO-ISL-17', '2026-05-17', ARRAY['CREW-106', 'CREW-107', 'CREW-009'], ARRAY['FLT-2025', 'FLT-2026', 'FLT-2027', 'FLT-2028'], 'DISRUPTED', 'WARNING', 'ADZ delay triggers standby crew evaluation'),
     ('PAIR-108', 'BOG-TECH-17', '2026-05-17', ARRAY['CREW-108', 'CREW-109', 'CREW-010'], ARRAY['FLT-2029', 'FLT-2030', 'FLT-2031', 'FLT-2032'], 'CANCELLED', 'ISSUE', 'Technical cancellation requires aircraft swap and passenger protection')
 ON CONFLICT (pairing_id) DO NOTHING;

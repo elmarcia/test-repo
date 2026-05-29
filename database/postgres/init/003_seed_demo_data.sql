@@ -38,7 +38,7 @@ INSERT INTO operations.crew_members (
     ('CREW-006', 'E1006', 'Camilo Perez', 'CTG', 'CABIN_CREW', 'ASSIGNED', NULL),
     ('CREW-007', 'E1007', 'Sofia Herrera', 'BOG', 'CAPTAIN', 'STANDBY', NULL),
     ('CREW-008', 'E1008', 'Julian Moreno', 'BOG', 'FIRST_OFFICER', 'STANDBY', NULL),
-    ('CREW-009', 'E1009', 'Natalia Cardenas', 'CLO', 'CABIN_CREW', 'STANDBY', NULL),
+    ('CREW-009', 'E1009', 'Natalia Cardenas', 'CLO', 'CABIN_CREW', 'ASSIGNED', NULL),
     ('CREW-010', 'E1010', 'Andres Silva', 'BOG', 'PURSER', 'AVAILABLE', NULL)
 ON CONFLICT (crew_member_id) DO NOTHING;
 
