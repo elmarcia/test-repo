@@ -103,6 +103,48 @@ Endpoints:
 - Core API health: http://localhost:8080/api/health
 - PostgreSQL: localhost:5432
 
+## Frontend Runtime API Configuration
+
+The Angular frontend does not bake the backend URL into the production build. On startup it loads:
+
+```text
+src/web/ops-crew-continuity-web/src/assets/app-config.json
+```
+
+The default value is:
+
+```json
+{
+  "apiBaseUrl": "/api"
+}
+```
+
+This keeps Docker Compose and local containerized deployments working through the nginx proxy in `src/web/ops-crew-continuity-web/nginx.conf`, where frontend calls to `/api` are forwarded to the `core-api` container.
+
+For Azure Web App deployments where the frontend and backend run as separate Web Apps, override the deployed frontend file:
+
+```text
+/home/site/wwwroot/assets/app-config.json
+```
+
+with:
+
+```json
+{
+  "apiBaseUrl": "https://wapp-opscrewcbackend-f6dqc9cee9dgh7fy.canadacentral-01.azurewebsites.net/api"
+}
+```
+
+An example file is included at:
+
+```text
+src/web/ops-crew-continuity-web/src/assets/app-config.azure.example.json
+```
+
+Only `app-config.json` is read by the application at runtime. To change environments, update the deployed `assets/app-config.json` file and restart or refresh the frontend; the Angular bundles do not need to be rebuilt. The app falls back to `environment.apiBaseUrl` if the runtime config file cannot be loaded, and trailing slashes are normalized before API calls are made.
+
+This approach avoids vendor lock-in because the same Angular build artifact can be deployed behind Docker nginx, Azure Web App, AWS, Kubernetes, or another static web host. Each environment supplies a small runtime JSON file instead of requiring provider-specific build-time replacements or hardcoded cloud URLs.
+
 Read-only operational API endpoints:
 
 - `GET /api/flights`

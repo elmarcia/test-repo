@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from '../config/app-config.service';
 import {
   CrewManifestDto,
   CrewMemberDto,
@@ -23,7 +23,11 @@ import {
 })
 export class OperationalApiService {
   private readonly http = inject(HttpClient);
-  private readonly apiBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
+  private readonly appConfig = inject(AppConfigService);
+
+  private get apiBaseUrl(): string {
+    return this.appConfig.apiBaseUrl;
+  }
 
   getFlights(): Observable<FlightDto[]> {
     return this.http.get<FlightDto[]>(`${this.apiBaseUrl}/flights`);
