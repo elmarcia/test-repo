@@ -25,12 +25,19 @@ export interface CrewMemberDto {
 export interface StandbyAssignmentDto {
   standbyAssignmentId: string;
   crewMemberId: string;
+  employeeNumber: string;
   fullName: string;
   baseIata: string;
   standbyStart: string;
   standbyEnd: string;
   readinessStatus: 'READY' | 'CONTACTED' | 'ASSIGNED' | 'UNAVAILABLE';
   notes: string | null;
+  assignedFlightId: string | null;
+  assignedFlightNumber: string | null;
+  assignedOriginIata: string | null;
+  assignedDestinationIata: string | null;
+  assignedScheduledDeparture: string | null;
+  assignedAircraftRegistration: string | null;
 }
 
 export interface PairingDto {

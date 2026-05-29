@@ -148,7 +148,7 @@ button:disabled {
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -185,6 +185,10 @@ button:disabled {
 
 .kpi-card.warning {
   border-left-color: #b7791f;
+}
+
+.kpi-card.movement {
+  border-left-color: #2563eb;
 }
 
 .kpi-card span {
@@ -230,7 +234,8 @@ button:disabled {
 .count-pill,
 .status-chip,
 .readiness,
-.legality {
+.legality,
+.movement-badge {
   border-radius: 999px;
   padding: 5px 9px;
   font-size: 0.72rem;
@@ -254,11 +259,19 @@ button:disabled {
 
 .disruption-card,
 .standby-item,
-.pairing-item {
+.pairing-item,
+.movement-item {
   border: 1px solid #d8e0e8;
   border-radius: 8px;
   background: linear-gradient(180deg, #ffffff, #fbfdff);
   padding: 13px;
+}
+
+.disruption-card.recovery-applied,
+tr.recovery-applied,
+.standby-item.assigned {
+  background: #f5fbff;
+  box-shadow: inset 3px 0 0 #2563eb;
 }
 
 .disruption-card {
@@ -312,6 +325,23 @@ button:disabled {
   color: #a43123;
 }
 
+.movement-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.disruption-card .movement-badge,
+.standby-item .movement-badge {
+  color: #1d4ed8;
+}
+
+.assignment-target {
+  display: block;
+  margin-top: 5px;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -359,8 +389,31 @@ th {
   color: #a43123;
 }
 
-.journal-panel {
+.journal-panel,
+.movement-panel {
   grid-column: 1 / -1;
+}
+
+.movement-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.movement-item {
+  display: grid;
+  gap: 4px;
+}
+
+.movement-item span {
+  color: #425466;
+  font-size: 0.84rem;
+}
+
+.movement-item small {
+  color: #1d4ed8;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .timeline-item {
@@ -401,8 +454,13 @@ time {
   }
 
   .active-panel,
-  .journal-panel {
+  .journal-panel,
+  .movement-panel {
     grid-column: 1 / -1;
+  }
+
+  .movement-list {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -424,8 +482,13 @@ time {
   }
 
   .active-panel,
-  .journal-panel {
+  .journal-panel,
+  .movement-panel {
     grid-column: auto;
+  }
+
+  .movement-list {
+    grid-template-columns: 1fr;
   }
 
   button,

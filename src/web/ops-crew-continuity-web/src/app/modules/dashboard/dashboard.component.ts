@@ -42,6 +42,14 @@ export class DashboardComponent implements OnInit {
     return this.crewMembers.filter((crewMember) => crewMember.status === 'LEGALITY_REVIEW');
   }
 
+  get crewMovements(): StandbyAssignmentDto[] {
+    return this.standbyAssignments.filter((assignment) => assignment.readinessStatus === 'ASSIGNED');
+  }
+
+  get recentCrewMovements(): StandbyAssignmentDto[] {
+    return this.crewMovements.slice(0, 4);
+  }
+
   ngOnInit(): void {
     this.loadDashboard();
   }
@@ -68,7 +76,7 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        this.errorMessage = 'Operational data is unavailable. Confirm the Core API and PostgreSQL containers are running.';
+        this.errorMessage = 'Operational data is unavailable. Confirm API connectivity and database access.';
         this.isLoading = false;
       }
     });
@@ -110,20 +118,94 @@ export class DashboardComponent implements OnInit {
   }
 
   assignStandby(assignment: StandbyAssignmentDto): void {
-    const flightId = window.prompt('Assign standby crew to flight ID', this.disruptedFlights[0]?.flightId || '');
-    if (!flightId?.trim()) {
+    const candidateFlights = this.disruptedFlights.length ? this.disruptedFlights : this.flights;
+    const defaultFlight = candidateFlights[0];
+    const options = candidateFlights
+      .slice(0, 12)
+      .map((flight, index) => `${index + 1}. ${this.getFlightLabel(flight)}`)
+      .join('\n');
+    const selection = window.prompt(
+      `Assign ${assignment.fullName} (${assignment.employeeNumber}) to which flight?\n\n${options}\n\nEnter number or flight number.`,
+      defaultFlight?.flightNumber || ''
+    );
+
+    if (!selection?.trim()) {
+      return;
+    }
+
+    const selectedFlight = this.findFlightFromSelection(selection, candidateFlights);
+    if (!selectedFlight) {
+      this.errorMessage = 'Select a valid flight number from the current operations board.';
       return;
     }
 
     const notes = window.prompt('Assignment notes', 'Assigned from continuity dashboard') || '';
+    const targetLabel = this.getFlightLabel(selectedFlight);
 
     this.runAction(
       this.operationalApi.assignStandby(assignment.standbyAssignmentId, {
-        flightId: flightId.trim(),
+        flightId: selectedFlight.flightId,
         notes: notes.trim()
       }),
-      `${assignment.fullName} assigned to ${flightId.trim()}.`
+      `${assignment.fullName} (${assignment.employeeNumber}) assigned to ${targetLabel}.`
     );
+  }
+
+  getFlightLabel(flight: FlightDto): string {
+    const aircraft = flight.aircraftRegistration || 'Aircraft TBD';
+    const departure = new Intl.DateTimeFormat(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(new Date(flight.scheduledDeparture));
+
+    return `${flight.flightNumber} ${flight.originIata} -> ${flight.destinationIata} ${aircraft} STD ${departure}`;
+  }
+
+  getAssignmentTargetLabel(assignment: StandbyAssignmentDto): string {
+    if (
+      assignment.assignedFlightNumber &&
+      assignment.assignedOriginIata &&
+      assignment.assignedDestinationIata
+    ) {
+      const aircraft = assignment.assignedAircraftRegistration || 'Aircraft TBD';
+      const departure = assignment.assignedScheduledDeparture
+        ? new Intl.DateTimeFormat(undefined, {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }).format(new Date(assignment.assignedScheduledDeparture))
+        : 'STD TBD';
+
+      return `${assignment.assignedFlightNumber} ${assignment.assignedOriginIata} -> ${assignment.assignedDestinationIata} ${aircraft} ${departure}`;
+    }
+
+    return 'No target flight assigned';
+  }
+
+  getJournalContext(entry: JournalEntryDto): string {
+    const flight = entry.flightId ? this.flights.find((item) => item.flightId === entry.flightId) : null;
+    const crew = entry.crewMemberId ? this.crewMembers.find((item) => item.crewMemberId === entry.crewMemberId) : null;
+
+    if (flight && crew) {
+      return `${flight.flightNumber} / ${crew.fullName} (${crew.employeeNumber})`;
+    }
+
+    if (flight) {
+      return this.getFlightLabel(flight);
+    }
+
+    if (crew) {
+      return `${crew.fullName} (${crew.employeeNumber})`;
+    }
+
+    return 'Network';
+  }
+
+  hasCrewMovement(flight: FlightDto): boolean {
+    return this.standbyAssignments.some((assignment) => assignment.assignedFlightId === flight.flightId);
   }
 
   private runAction(action$: ReturnType<OperationalApiService['delayFlight']>, successMessage: string): void {
@@ -142,5 +224,16 @@ export class DashboardComponent implements OnInit {
         this.isActionInProgress = false;
       }
     });
+  }
+
+  private findFlightFromSelection(selection: string, candidates: FlightDto[]): FlightDto | null {
+    const trimmed = selection.trim();
+    const selectedIndex = Number(trimmed);
+
+    if (Number.isInteger(selectedIndex) && selectedIndex > 0 && selectedIndex <= candidates.length) {
+      return candidates[selectedIndex - 1];
+    }
+
+    return this.flights.find((flight) => flight.flightNumber.toLowerCase() === trimmed.toLowerCase()) || null;
   }
 }

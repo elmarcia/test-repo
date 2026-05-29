@@ -55,6 +55,12 @@
       <strong>{{ legalityIssues.length }}</strong>
       <small>Crew continuity watch</small>
     </article>
+
+    <article class="kpi-card movement">
+      <span>Crew Movements</span>
+      <strong>{{ crewMovements.length }}</strong>
+      <small>Standby assigned or crew changed</small>
+    </article>
   </section>
 
   <section class="content-grid">
@@ -71,10 +77,10 @@
       @if (disruptedFlights.length) {
         <div class="flight-stack">
           @for (flight of disruptedFlights; track flight.flightId) {
-            <div class="disruption-card">
+            <div class="disruption-card" [class.recovery-applied]="hasCrewMovement(flight)">
               <div>
                 <strong>{{ flight.flightNumber }}</strong>
-                <span>{{ flight.originIata }} -> {{ flight.destinationIata }}</span>
+                <span>{{ flight.originIata }} -> {{ flight.destinationIata }} - {{ flight.aircraftRegistration || 'Aircraft TBD' }}</span>
               </div>
               <span
                 class="status-chip"
@@ -84,6 +90,9 @@
               >
                 {{ flight.status }}
               </span>
+              @if (hasCrewMovement(flight)) {
+                <span class="movement-badge">Crew changed</span>
+              }
               <p>{{ flight.disruptionReason || 'No disruption reason provided' }}</p>
               <div class="action-row">
                 <button type="button" class="small-action" (click)="delayFlight(flight)" [disabled]="isActionInProgress || isLoading">
@@ -121,17 +130,23 @@
               <th>Departure</th>
               <th>Arrival</th>
               <th>Aircraft</th>
+              <th>Movement</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (flight of activeFlights; track flight.flightId) {
-              <tr>
+              <tr [class.recovery-applied]="hasCrewMovement(flight)">
                 <td>{{ flight.flightNumber }}</td>
                 <td>{{ flight.originIata }} -> {{ flight.destinationIata }}</td>
                 <td>{{ flight.scheduledDeparture | date:'HH:mm' }}</td>
                 <td>{{ flight.scheduledArrival | date:'HH:mm' }}</td>
                 <td>{{ flight.aircraftRegistration || 'TBD' }}</td>
+                <td>
+                  @if (hasCrewMovement(flight)) {
+                    <span class="movement-badge">Standby assigned</span>
+                  }
+                </td>
                 <td>
                   <div class="table-actions">
                     <button type="button" class="small-action" (click)="delayFlight(flight)" [disabled]="isActionInProgress || isLoading">
@@ -147,7 +162,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="6">No active flights in the demo feed.</td>
+                <td colspan="7">No active flights in the demo feed.</td>
               </tr>
             }
           </tbody>
@@ -166,13 +181,19 @@
 
       <div class="standby-list">
         @for (assignment of standbyAssignments; track assignment.standbyAssignmentId) {
-          <div class="standby-item">
+          <div class="standby-item" [class.assigned]="assignment.readinessStatus === 'ASSIGNED'">
             <div>
-              <strong>{{ assignment.fullName }}</strong>
+              <strong>{{ assignment.fullName }} ({{ assignment.employeeNumber }})</strong>
               <span>{{ assignment.baseIata }} - {{ assignment.standbyStart | date:'HH:mm' }}-{{ assignment.standbyEnd | date:'HH:mm' }}</span>
+              @if (assignment.readinessStatus === 'ASSIGNED') {
+                <span class="assignment-target">{{ getAssignmentTargetLabel(assignment) }}</span>
+              }
             </div>
             <div class="standby-actions">
               <span class="readiness">{{ assignment.readinessStatus }}</span>
+              @if (assignment.readinessStatus === 'ASSIGNED') {
+                <span class="movement-badge">Standby assigned</span>
+              }
               <button type="button" class="small-action" (click)="assignStandby(assignment)" [disabled]="isActionInProgress || isLoading">
                 Assign standby
               </button>
@@ -210,6 +231,28 @@
       </div>
     </article>
 
+    <article class="panel movement-panel">
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">Crew Movement</span>
+          <h2>Assignment Activity</h2>
+          <p>Visible standby movements reflected from API state.</p>
+        </div>
+      </div>
+
+      <div class="movement-list">
+        @for (assignment of recentCrewMovements; track assignment.standbyAssignmentId) {
+          <div class="movement-item">
+            <strong>{{ assignment.fullName }} ({{ assignment.employeeNumber }})</strong>
+            <span>{{ getAssignmentTargetLabel(assignment) }}</span>
+            <small>Recovery action applied</small>
+          </div>
+        } @empty {
+          <p class="empty">No crew movements have been applied yet.</p>
+        }
+      </div>
+    </article>
+
     <article class="panel journal-panel">
       <div class="panel-header">
         <div>
@@ -226,7 +269,7 @@
             <div>
               <strong>{{ entry.category }}</strong>
               <p>{{ entry.message }}</p>
-              <span>{{ entry.severity }} - {{ entry.flightId || entry.crewMemberId || 'Network' }}</span>
+              <span>{{ entry.severity }} - {{ getJournalContext(entry) }}</span>
             </div>
           </div>
         } @empty {

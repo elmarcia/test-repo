@@ -2,8 +2,9 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
-import { FlightDto } from '../../core/api/operational-api.models';
+import { FlightDto, StandbyAssignmentDto } from '../../core/api/operational-api.models';
 import { OperationalApiService } from '../../core/api/operational-api.service';
 import { TimelineViewModel } from './flight-timeline.models';
 import { FlightTimelineService } from './flight-timeline.service';
@@ -20,6 +21,7 @@ export class FlightTimelineComponent implements OnInit {
   private readonly timelineService = inject(FlightTimelineService);
 
   flights: FlightDto[] = [];
+  standbyAssignments: StandbyAssignmentDto[] = [];
   viewModel: TimelineViewModel = this.timelineService.buildViewModel([]);
   selectedFlight: FlightDto | null = null;
   aircraftFilter = 'ALL';
@@ -58,6 +60,10 @@ export class FlightTimelineComponent implements OnInit {
     return this.flights.filter((flight) => flight.status === 'CANCELLED').length;
   }
 
+  get crewMovementCount(): number {
+    return this.standbyAssignments.filter((assignment) => assignment.readinessStatus === 'ASSIGNED').length;
+  }
+
   ngOnInit(): void {
     this.loadFlights();
   }
@@ -66,9 +72,13 @@ export class FlightTimelineComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.operationalApi.getFlights().subscribe({
-      next: (flights) => {
+    forkJoin({
+      flights: this.operationalApi.getFlights(),
+      standbyAssignments: this.operationalApi.getStandbyAssignments()
+    }).subscribe({
+      next: ({ flights, standbyAssignments }) => {
         this.flights = flights;
+        this.standbyAssignments = standbyAssignments;
         this.refreshTimeline();
         this.selectedFlight = this.selectedFlight
           ? flights.find((flight) => flight.flightId === this.selectedFlight?.flightId) || null
@@ -76,7 +86,7 @@ export class FlightTimelineComponent implements OnInit {
         this.isLoading = false;
       },
       error: () => {
-        this.errorMessage = 'Flight timeline data is unavailable. Confirm the Core API and PostgreSQL containers are running.';
+        this.errorMessage = 'Flight timeline data is unavailable. Confirm API connectivity and database access.';
         this.isLoading = false;
       }
     });
@@ -156,6 +166,15 @@ export class FlightTimelineComponent implements OnInit {
 
   getEffectiveArrival(flight: FlightDto): Date {
     return this.timelineService.getEffectiveArrival(flight);
+  }
+
+  getCrewMovement(flight: FlightDto): StandbyAssignmentDto | null {
+    return this.standbyAssignments.find((assignment) => assignment.assignedFlightId === flight.flightId) || null;
+  }
+
+  getCrewStatus(flight: FlightDto): string {
+    const movement = this.getCrewMovement(flight);
+    return movement ? `Standby assigned: ${movement.fullName} (${movement.employeeNumber})` : 'Pairing crew unchanged';
   }
 
   private runAction(action$: ReturnType<OperationalApiService['delayFlight']>, successMessage: string): void {

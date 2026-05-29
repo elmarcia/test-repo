@@ -36,6 +36,10 @@
       <span>Cancelled</span>
       <strong>{{ cancelledCount }}</strong>
     </article>
+    <article class="movement">
+      <span>Crew Movements</span>
+      <strong>{{ crewMovementCount }}</strong>
+    </article>
   </section>
 
   <section class="control-strip" aria-label="Timeline controls">
@@ -105,7 +109,7 @@
                   [class.broken]="connector.state === 'broken'"
                   [style.left.%]="connector.leftPercent"
                   [style.width.%]="connector.widthPercent"
-                  [title]="connector.label"
+                  [attr.aria-label]="connector.label"
                 ></span>
               }
               @for (bar of row.bars; track bar.flight.flightId) {
@@ -117,9 +121,9 @@
                   [class.cancelled]="bar.statusClass === 'cancelled'"
                   [class.disrupted]="bar.statusClass === 'disrupted'"
                   [class.selected]="selectedFlight?.flightId === bar.flight.flightId"
+                  [class.crew-changed]="getCrewMovement(bar.flight) !== null"
                   [style.left.%]="bar.leftPercent"
                   [style.width.%]="bar.widthPercent"
-                  [title]="bar.flight.flightNumber + ' ' + bar.flight.originIata + '-' + bar.flight.destinationIata"
                   (click)="selectFlight(bar.flight)"
                 >
                   <span class="bar-main">{{ bar.flight.flightNumber }}</span>
@@ -133,12 +137,18 @@
                       turn {{ bar.turnMinutesAfterPrevious }}m
                     </span>
                   }
+                  @if (getCrewMovement(bar.flight)) {
+                    <span class="crew-chip">Crew changed</span>
+                  }
                   <span class="bar-tooltip">
-                    <strong>{{ bar.flight.flightNumber }} {{ bar.flight.originIata }} -> {{ bar.flight.destinationIata }}</strong>
-                    <span>Aircraft {{ bar.flight.aircraftRegistration || 'TBD' }}</span>
-                    <span>Effective {{ bar.departureLabel }} - {{ bar.arrivalLabel }}</span>
-                    <span>Scheduled {{ bar.flight.scheduledDeparture | date:'HH:mm' }} - {{ bar.flight.scheduledArrival | date:'HH:mm' }}</span>
-                    <span>{{ bar.flight.disruptionReason || 'No disruption reason' }}</span>
+                    <strong>{{ bar.flight.flightNumber }}</strong>
+                    <span>{{ bar.flight.originIata }} -> {{ bar.flight.destinationIata }}</span>
+                    <span>Aircraft: {{ bar.flight.aircraftRegistration || 'TBD' }}</span>
+                    <span>Status: {{ bar.flight.status }}</span>
+                    <span>Scheduled: {{ bar.flight.scheduledDeparture | date:'HH:mm' }} - {{ bar.flight.scheduledArrival | date:'HH:mm' }}</span>
+                    <span>Estimated: {{ bar.departureLabel }} - {{ bar.arrivalLabel }}</span>
+                    <span>Delay: {{ bar.delayMinutes !== 0 ? bar.delayMinutes + ' minutes' : 'None' }}</span>
+                    <span>Crew: {{ getCrewStatus(bar.flight) }}</span>
                   </span>
                 </button>
               }
@@ -186,7 +196,19 @@
           <dt>Disruption</dt>
           <dd>{{ selectedFlight.disruptionReason || 'No disruption reason provided' }}</dd>
         </div>
+        <div>
+          <dt>Crew Movement</dt>
+          <dd>{{ getCrewStatus(selectedFlight) }}</dd>
+        </div>
       </dl>
+
+      @if (getCrewMovement(selectedFlight); as movement) {
+        <section class="movement-card">
+          <strong>Standby assigned</strong>
+          <span>{{ movement.fullName }} ({{ movement.employeeNumber }})</span>
+          <span>{{ movement.notes || 'Recovery action applied' }}</span>
+        </section>
+      }
 
       <div class="detail-actions">
         <button type="button" (click)="delayFlight(selectedFlight)" [disabled]="isActionInProgress || isLoading">Delay</button>
